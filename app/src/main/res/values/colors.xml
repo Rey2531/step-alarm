@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#0E1117</color>
+    <color name="card">#1A1F2B</color>
+    <color name="accent">#7CE0A3</color>
+    <color name="muted">#8B93A7</color>
+    <color name="warn">#FFB86B</color>
+    <color name="ring_bg">#7A1F1A</color>
+    <color name="icon_bg">#16302A</color>
+</resources>

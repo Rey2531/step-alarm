@@ -1,27 +1,32 @@
 package com.stepalarm.app;
 
-import android.app.Activity;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
+import android.animation.ValueAnimator;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import androidx.activity.OnBackPressedCallback;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 import java.util.Date;
 
 /** Full-screen ringing screen. There is no stop button: only walking stops it. */
-public class RingActivity extends Activity implements AlarmService.Listener {
+public class RingActivity extends AppCompatActivity implements AlarmService.Listener {
 
-    private TextView title;
-    private TextView count;
-    private TextView goalText;
-    private TextView hint;
-    private ProgressBar bar;
-    private Button emergency;
+    private TextView title, count, goalText, hint;
+    private CircularProgressIndicator bar;
+    private MaterialButton emergency;
+    private ObjectAnimator pulse;
+    private int shown = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,10 +47,28 @@ public class RingActivity extends Activity implements AlarmService.Listener {
         hint = findViewById(R.id.hint);
         bar = findViewById(R.id.bar);
         emergency = findViewById(R.id.emergency);
-        TextView clock = findViewById(R.id.clock);
-        clock.setText(DateFormat.getTimeFormat(this).format(new Date()));
+
+        Date now = new Date();
+        ((TextView) findViewById(R.id.clock)).setText(DateFormat.getTimeFormat(this).format(now));
+        ((TextView) findViewById(R.id.date)).setText(
+                DateFormat.format("EEEE, d MMMM", now));
 
         emergency.setOnClickListener(v -> AlarmService.stopWithoutSensors(this));
+
+        // Back button does nothing while the alarm rings.
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() { }
+        });
+
+        View box = findViewById(R.id.ring_box);
+        pulse = ObjectAnimator.ofPropertyValuesHolder(box,
+                PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.05f),
+                PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.05f));
+        pulse.setDuration(700);
+        pulse.setRepeatCount(ValueAnimator.INFINITE);
+        pulse.setRepeatMode(ValueAnimator.REVERSE);
+        pulse.start();
     }
 
     @Override
@@ -67,31 +90,39 @@ public class RingActivity extends Activity implements AlarmService.Listener {
     }
 
     @Override
+    protected void onDestroy() {
+        if (pulse != null) pulse.cancel();
+        super.onDestroy();
+    }
+
+    @Override
     public void onProgress(int steps, int goal) {
         runOnUiThread(() -> {
             count.setText(String.valueOf(steps));
-            goalText.setText("of " + goal + " steps");
+            goalText.setText(steps == 1 && goal == 1 ? "of 1 step" : "of " + goal + " steps");
             bar.setMax(goal);
-            bar.setProgress(steps);
+            bar.setProgressCompat(steps, shown >= 0);
+            if (shown >= 0 && steps > shown) {
+                count.animate().scaleX(1.18f).scaleY(1.18f).setDuration(90)
+                        .withEndAction(() -> count.animate().scaleX(1f).scaleY(1f).setDuration(140).start())
+                        .start();
+            }
+            shown = steps;
         });
     }
 
     @Override
     public void onDone() {
         runOnUiThread(() -> {
-            title.setText("Good morning!");
+            if (pulse != null) pulse.cancel();
+            title.setText("SELAMAT PAGI!");
             count.setText("✓");
             goalText.setText("Alarm off");
-            hint.setText("");
+            hint.setText("Have a great day, Rey.");
             emergency.setVisibility(View.GONE);
-            bar.setProgress(bar.getMax());
-            count.postDelayed(this::finish, 1500);
+            bar.setProgressCompat(bar.getMax(), true);
+            count.postDelayed(this::finish, 1800);
         });
-    }
-
-    @Override
-    public void onBackPressed() {
-        // Back button does nothing while the alarm rings.
     }
 
     @Override

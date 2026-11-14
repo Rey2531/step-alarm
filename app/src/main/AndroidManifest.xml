@@ -19,7 +19,7 @@
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
-        android:label="Step Alarm"
+        android:label="Bangun Rey"
         android:theme="@style/AppTheme">
 
         <activity
@@ -33,6 +33,7 @@
 
         <activity
             android:name=".RingActivity"
+            android:theme="@style/RingTheme"
             android:exported="false"
             android:excludeFromRecents="true"
             android:launchMode="singleTask"

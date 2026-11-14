@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.text.format.DateFormat;
 
@@ -17,8 +18,48 @@ final class Alarms {
     static final String KEY_STEPS = "steps";
     static final String KEY_ENABLED = "enabled";
     static final String KEY_REPEAT = "repeat";
+    static final String KEY_VIBRATE = "vibrate";
+    static final String KEY_SOUND_TYPE = "sound_type";
+    static final String KEY_SOUND_URI = "sound_uri";
+    static final String KEY_SOUND_NAME = "sound_name";
+
+    static final String SOUND_BUILTIN = "builtin";
+    static final String SOUND_SYSTEM = "system";
+    static final String SOUND_FILE = "file";
 
     private Alarms() {}
+
+    static boolean vibrate(Context c) { return prefs(c).getBoolean(KEY_VIBRATE, true); }
+
+    static Uri builtinSound(Context c) {
+        return Uri.parse("android.resource://" + c.getPackageName() + "/" + R.raw.bangun_rey);
+    }
+
+    /** The sound the alarm should play. */
+    static Uri soundUri(Context c) {
+        SharedPreferences p = prefs(c);
+        String type = p.getString(KEY_SOUND_TYPE, SOUND_BUILTIN);
+        String uri = p.getString(KEY_SOUND_URI, null);
+        if (SOUND_BUILTIN.equals(type) || uri == null) return builtinSound(c);
+        return Uri.parse(uri);
+    }
+
+    static String soundName(Context c) {
+        SharedPreferences p = prefs(c);
+        String type = p.getString(KEY_SOUND_TYPE, SOUND_BUILTIN);
+        if (SOUND_BUILTIN.equals(type)) return "Bangun Rey tone (built-in)";
+        String name = p.getString(KEY_SOUND_NAME, null);
+        if (name == null || name.isEmpty()) name = SOUND_FILE.equals(type) ? "Song from your phone" : "Phone alarm sound";
+        return name;
+    }
+
+    static void saveSound(Context c, String type, Uri uri, String name) {
+        prefs(c).edit()
+                .putString(KEY_SOUND_TYPE, type)
+                .putString(KEY_SOUND_URI, uri == null ? null : uri.toString())
+                .putString(KEY_SOUND_NAME, name)
+                .apply();
+    }
 
     static SharedPreferences prefs(Context c) {
         return c.getSharedPreferences("alarm", Context.MODE_PRIVATE);

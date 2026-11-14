@@ -103,7 +103,7 @@ public class AlarmService extends Service implements SensorEventListener {
         }
 
         PowerManager pm = getSystemService(PowerManager.class);
-        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "StepAlarm:ring");
+        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BangunRey:ring");
         wakeLock.acquire(MAX_RING_MS + 60_000L);
 
         startSound();
@@ -133,7 +133,7 @@ public class AlarmService extends Service implements SensorEventListener {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         return new Notification.Builder(this, CHANNEL)
                 .setSmallIcon(R.drawable.ic_stat_walk)
-                .setContentTitle("Wake up!")
+                .setContentTitle("Bangun, Rey!")
                 .setContentText(steps + " of " + goal + " steps. Keep walking to stop the alarm.")
                 .setCategory(Notification.CATEGORY_ALARM)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
@@ -170,8 +170,22 @@ public class AlarmService extends Service implements SensorEventListener {
             }
         } catch (Exception ignored) { }
 
-        Uri uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
-        if (uri == null) uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+        // Chosen sound first, then the built-in tone, then the phone's alarm, then a beep.
+        Uri[] choices = {
+                Alarms.soundUri(this),
+                Alarms.builtinSound(this),
+                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+        };
+        for (Uri uri : choices) {
+            if (uri != null && tryPlay(uri)) {
+                startVolumeRamp();
+                return;
+            }
+        }
+        startTone();
+    }
+
+    private boolean tryPlay(Uri uri) {
         try {
             player = new MediaPlayer();
             player.setAudioAttributes(new AudioAttributes.Builder()
@@ -182,10 +196,26 @@ public class AlarmService extends Service implements SensorEventListener {
             player.setLooping(true);
             player.prepare();
             player.start();
+            return true;
         } catch (Exception e) {
             releasePlayer();
-            startTone();
+            return false;
         }
+    }
+
+    /** Starts at 35% loudness and rises to full over about 15 seconds. */
+    private void startVolumeRamp() {
+        final float[] vol = {0.35f};
+        if (player != null) player.setVolume(vol[0], vol[0]);
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (player == null) return;
+                vol[0] = Math.min(1f, vol[0] + 0.022f);
+                try { player.setVolume(vol[0], vol[0]); } catch (Exception ignored) { }
+                if (vol[0] < 1f) handler.postDelayed(this, 500);
+            }
+        }, 500);
     }
 
     private void startTone() {
@@ -206,6 +236,7 @@ public class AlarmService extends Service implements SensorEventListener {
     }
 
     private void startVibration() {
+        if (!Alarms.vibrate(this)) return;
         vibrator = getSystemService(Vibrator.class);
         if (vibrator == null || !vibrator.hasVibrator()) return;
         VibrationEffect effect = VibrationEffect.createWaveform(new long[]{0, 700, 500}, 0);

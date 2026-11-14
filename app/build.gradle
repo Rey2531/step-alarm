@@ -7,16 +7,31 @@ android {
     compileSdk 34
 
     defaultConfig {
+        // Kept the same so new versions install over the old one.
         applicationId "com.stepalarm.app"
         minSdk 26
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "2.0"
+    }
+
+    signingConfigs {
+        // A fixed key, so every build can update the app already on the phone.
+        fixed {
+            storeFile file('bangunrey.keystore')
+            storePassword 'bangunrey'
+            keyAlias 'bangunrey'
+            keyPassword 'bangunrey'
+        }
     }
 
     buildTypes {
+        debug {
+            signingConfig signingConfigs.fixed
+        }
         release {
             minifyEnabled false
+            signingConfig signingConfigs.fixed
         }
     }
 
@@ -29,4 +44,10 @@ android {
         abortOnError false
         checkReleaseBuilds false
     }
+}
+
+dependencies {
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.activity:activity:1.9.3'
 }

@@ -1,10 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bg">#0E1117</color>
-    <color name="card">#1A1F2B</color>
-    <color name="accent">#7CE0A3</color>
-    <color name="muted">#8B93A7</color>
+    <color name="bg">#0B0F19</color>
+    <color name="surface">#151B2B</color>
+    <color name="surface_high">#1E2639</color>
+    <color name="divider">#262F45</color>
+    <color name="primary">#FFB547</color>
+    <color name="on_primary">#2B1700</color>
+    <color name="primary_container">#3A2A10</color>
+    <color name="secondary">#7CC8FF</color>
+    <color name="text">#F2F4F8</color>
+    <color name="muted">#8A93A8</color>
     <color name="warn">#FFB86B</color>
-    <color name="ring_bg">#7A1F1A</color>
-    <color name="icon_bg">#16302A</color>
+    <color name="warn_container">#2E2112</color>
+    <color name="ok">#6FD99A</color>
+    <color name="ring_top">#FF8A3D</color>
+    <color name="ring_mid">#B83A22</color>
+    <color name="ring_bottom">#24124D</color>
+    <color name="white_20">#33FFFFFF</color>
+    <color name="white_70">#B3FFFFFF</color>
+    <!-- kept from version 1 -->
+    <color name="card">#151B2B</color>
+    <color name="accent">#FFB547</color>
+    <color name="ring_bg">#B83A22</color>
+    <color name="icon_bg">#FFB547</color>
 </resources>

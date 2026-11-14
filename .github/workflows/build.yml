@@ -27,20 +27,20 @@ jobs:
         run: gradle assembleDebug --no-daemon --stacktrace
 
       - name: Rename APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk StepAlarm.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk BangunRey.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: StepAlarm
-          path: StepAlarm.apk
+          name: BangunRey
+          path: BangunRey.apk
 
       - name: Save APK to the "apk" branch
         run: |
-          mkdir out && cp StepAlarm.apk out/
+          mkdir out && cp BangunRey.apk out/
           cd out
           git init -q -b apk
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-          git add StepAlarm.apk
+          git add BangunRey.apk
           git commit -q -m "APK from ${GITHUB_SHA}"
           git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" apk
